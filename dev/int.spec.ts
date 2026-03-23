@@ -9,7 +9,7 @@ import { customEndpointHandler } from '../src/endpoints/customEndpointHandler.js
 let payload: Payload
 
 afterAll(async () => {
-  await payload.destroy()
+  await payload.db.destroy?.()
 })
 
 beforeAll(async () => {
