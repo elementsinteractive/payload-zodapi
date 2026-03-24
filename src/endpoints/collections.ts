@@ -1,7 +1,6 @@
 import type { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi'
 import type { CollectionConfig } from 'payload'
 
-import { CollectionsSchema } from '@/payload-schemas'
 import { formatLabels } from 'payload'
 import { z } from 'zod'
 
@@ -25,9 +24,10 @@ export function registerCollectionEndpoints(
   collection: CollectionConfig,
   apiPrefix: string,
   registry: OpenAPIRegistry,
+  collectionsSchema: z.ZodObject<z.ZodRawShape>,
 ) {
   const slug = collection.slug
-  const rawSchema = CollectionsSchema.shape[slug]
+  const rawSchema = collectionsSchema.shape[slug] as undefined | z.ZodObject<z.ZodRawShape>
   if (!rawSchema) {
     return
   }
@@ -304,6 +304,25 @@ export function registerCollectionEndpoints(
       '404': { description: 'Version not found' },
     },
     summary: `Restore a ${singular} version`,
+    tags,
+  })
+
+  // GET /{id}/preview — Preview document
+  registry.registerPath({
+    method: 'get',
+    operationId: `preview${refId}`,
+    path: `${basePath}/{id}/preview`,
+    request: {
+      params: z.object({ id: z.string() }),
+    },
+    responses: {
+      '200': {
+        content: { 'application/json': { schema: base } },
+        description: `Preview of ${singular}`,
+      },
+      '404': { description: `${singular} not found` },
+    },
+    summary: `Preview a ${singular}`,
     tags,
   })
 }

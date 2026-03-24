@@ -8,11 +8,12 @@ import type { Endpoint } from 'payload'
  * adds, removes, or renames an endpoint in a future version, these tests
  * will fail and tell us exactly what changed.
  */
-import { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi'
+import { extendZodWithOpenApi, OpenAPIRegistry } from '@asteasolutions/zod-to-openapi'
+import { describe, expect, it } from 'vitest'
 
 import '../testHelpers'
 
-import { describe, expect, it, vi } from 'vitest'
+import { z } from 'zod'
 
 import { registerAuthCollectionEndpoints, registerAuthRootEndpoints } from '../endpoints/auth'
 import { registerCollectionEndpoints } from '../endpoints/collections'
@@ -73,21 +74,20 @@ const registryPathSet = (registry: OpenAPIRegistry): Set<string> => {
 
 // ── Mocks ───────────────────────────────────────────────────────────
 
-vi.mock('@/payload-schemas', () => {
-  // @ts-expect-error these are mocks
-  const { z } = vi.importActual('zod')
-  // @ts-expect-error these are mocks
-  const { extendZodWithOpenApi } = vi.importActual('@asteasolutions/zod-to-openapi')
-  extendZodWithOpenApi(z)
+// ── Stub schemas ────────────────────────────────────────────────────
 
-  const stubSchema = z.object({ id: z.string() })
-  const schemaProxy = new Proxy({}, { get: () => stubSchema })
+extendZodWithOpenApi(z)
 
-  return {
-    CollectionsSchema: { shape: schemaProxy },
-    GlobalsSchema: { shape: schemaProxy },
-  }
+const stubSchema = z.object({ id: z.string() })
+const schemaProxy = new Proxy({} as Record<string, typeof stubSchema>, {
+  get: () => stubSchema,
 })
+const stubCollectionsSchema = z
+  .object({})
+  .extend(schemaProxy) as unknown as z.ZodObject<z.ZodRawShape>
+// Attach the proxy as `.shape` so property access by slug returns stubSchema
+Object.defineProperty(stubCollectionsSchema, 'shape', { value: schemaProxy })
+const stubGlobalsSchema = stubCollectionsSchema
 
 // ── Tests ───────────────────────────────────────────────────────────
 
@@ -110,7 +110,12 @@ const stubGlobal = (slug: string) => ({ slug }) as Parameters<typeof registerGlo
 describe('endpoints/ drift detection against Payload', () => {
   it('defaultCollectionEndpoints', () => {
     const registry = new OpenAPIRegistry()
-    registerCollectionEndpoints(stubCollection('test'), COLLECTION_PREFIX, registry)
+    registerCollectionEndpoints(
+      stubCollection('test'),
+      COLLECTION_PREFIX,
+      registry,
+      stubCollectionsSchema,
+    )
 
     const expected = payloadEndpointSet(defaultCollectionEndpoints, `${COLLECTION_PREFIX}/test`)
     const actual = registryPathSet(registry)
@@ -120,7 +125,7 @@ describe('endpoints/ drift detection against Payload', () => {
 
   it('defaultGlobalEndpoints', () => {
     const registry = new OpenAPIRegistry()
-    registerGlobalEndpoints(stubGlobal('test'), GLOBAL_PREFIX, registry)
+    registerGlobalEndpoints(stubGlobal('test'), GLOBAL_PREFIX, registry, stubGlobalsSchema)
 
     const expected = payloadEndpointSet(defaultGlobalEndpoints, `${GLOBAL_PREFIX}/globals/test`)
     const actual = registryPathSet(registry)
@@ -130,7 +135,12 @@ describe('endpoints/ drift detection against Payload', () => {
 
   it('authCollectionEndpoints', () => {
     const registry = new OpenAPIRegistry()
-    registerAuthCollectionEndpoints(stubAuthCollection('users'), COLLECTION_PREFIX, registry)
+    registerAuthCollectionEndpoints(
+      stubAuthCollection('users'),
+      COLLECTION_PREFIX,
+      registry,
+      stubCollectionsSchema,
+    )
 
     const expected = payloadEndpointSet(authCollectionEndpoints, `${COLLECTION_PREFIX}/users`)
     const actual = registryPathSet(registry)

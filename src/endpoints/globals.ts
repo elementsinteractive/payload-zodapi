@@ -1,7 +1,6 @@
 import type { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi'
 import type { GlobalConfig } from 'payload'
 
-import { GlobalsSchema } from '@/payload-schemas'
 import { formatLabels } from 'payload'
 import { z } from 'zod'
 
@@ -16,9 +15,10 @@ export function registerGlobalEndpoints(
   global: GlobalConfig,
   apiPrefix: string,
   registry: OpenAPIRegistry,
+  globalsSchema: z.ZodObject<z.ZodRawShape>,
 ) {
   const slug = global.slug
-  const rawSchema = GlobalsSchema.shape[slug]
+  const rawSchema = globalsSchema.shape[slug] as undefined | z.ZodObject<z.ZodRawShape>
   if (!rawSchema) {
     return
   }
@@ -147,6 +147,21 @@ export function registerGlobalEndpoints(
       '404': { description: 'Version not found' },
     },
     summary: `Restore a ${label} version`,
+    tags,
+  })
+
+  // GET /preview — Preview global
+  registry.registerPath({
+    method: 'get',
+    operationId: `preview${refId}Global`,
+    path: `${basePath}/preview`,
+    responses: {
+      '200': {
+        content: { 'application/json': { schema: base } },
+        description: `Preview of ${label}`,
+      },
+    },
+    summary: `Preview ${label}`,
     tags,
   })
 }

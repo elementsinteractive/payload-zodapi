@@ -1,7 +1,6 @@
 import type { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi'
 import type { CollectionConfig } from 'payload'
 
-import { CollectionsSchema } from '@/payload-schemas'
 import { formatLabels } from 'payload'
 import { z } from 'zod'
 
@@ -24,13 +23,14 @@ export function registerAuthCollectionEndpoints(
   collection: CollectionConfig,
   apiPrefix: string,
   registry: OpenAPIRegistry,
+  collectionsSchema: z.ZodObject<z.ZodRawShape>,
 ) {
   const slug = collection.slug
   const { singular } = formatLabels(slug)
   const basePath = `${apiPrefix}/${slug}`
   const tags = [authTag]
   const userSchema: z.ZodTypeAny =
-    CollectionsSchema.shape[slug] ?? z.record(z.string(), z.unknown())
+    (collectionsSchema.shape[slug] as undefined | z.ZodTypeAny) ?? z.record(z.string(), z.unknown())
 
   // POST /login
   registry.registerPath({

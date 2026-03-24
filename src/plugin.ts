@@ -2,10 +2,11 @@ import type { Config, Endpoint } from 'payload'
 
 import { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import type { OpenApiMetadata, SchemaPreProcessor, SpecAccess } from './types'
 
+import { DEFAULT_SCHEMAS_PATH, script as generateSchemas } from './bin/generate-schemas'
 import { registerPayloadDefaults } from './endpoints'
 import { createSpecHandler } from './handlers/specHandler'
 import { createDocsHandler } from './handlers/swaggerUIHandler'
@@ -35,7 +36,6 @@ const DEFAULTS = {
     version: '1.0.0',
   },
   openapiVersion: '3.0' as const,
-  schemasPath: 'src/payload-schemas.ts',
   specEndpointPath: '/openapi.json',
 }
 
@@ -69,17 +69,18 @@ export const zodApiPlugin =
     const specEndpointPath = options.specEndpoint ?? DEFAULTS.specEndpointPath
     const apiPrefix = config.routes?.api ?? '/api'
     const docsEndpointPath = options.docsEndpoint ?? DEFAULTS.docsEndpointPath
+    const schemasPath = options.schemasPath ?? DEFAULT_SCHEMAS_PATH
 
-    // Forward schemaPreProcessors to `custom` options, so the bin script can pick them up
-    if (options.schemaPreProcessors?.length) {
-      config.custom = {
-        ...config.custom,
-        zodApiPluginOpts: {
-          ...config.custom?.zodApiPluginOpts,
-          schemaPreProcessors: options.schemaPreProcessors,
-          schemasPath: options.schemasPath,
-        },
-      }
+    // Forward plugin options to `custom` so the bin script can read them
+    config.custom = {
+      ...config.custom,
+      zodApiPluginOpts: {
+        ...config.custom?.zodApiPluginOpts,
+        schemasPath,
+        ...(options.schemaPreProcessors?.length
+          ? { schemaPreProcessors: options.schemaPreProcessors }
+          : {}),
+      },
     }
 
     // Add script to generate zod schemas
@@ -132,14 +133,23 @@ export const zodApiPlugin =
       ),
     }))
 
-    // Register Payload's default CRUD endpoints
-    registerPayloadDefaults(config.collections ?? [], config.globals ?? [], apiPrefix, registry)
+    // Promise that resolves once the registry is fully populated (after onInit).
+    // The spec handler waits on this before generating the OpenAPI document.
+    let resolveReady: () => void
+    const readyPromise = new Promise<void>((resolve) => {
+      resolveReady = resolve
+    })
+
+    // Snapshot config lists before they are consumed by Payload
+    const collections = config.collections ?? []
+    const globals = config.globals ?? []
 
     // Add the OpenAPI spec endpoint
     const specHandler = createSpecHandler(registry, {
       metadata,
       openapiVersion,
       readAccess: options.readAccess,
+      readyPromise,
     })
     const specEndpoint: Endpoint = {
       handler: specHandler,
@@ -162,13 +172,42 @@ export const zodApiPlugin =
       config.endpoints = [...config.endpoints, docsEndpoint]
     }
 
-    // Generate schemas on startup (similar to how payload generates types)
-    if (process.env.NODE_ENV !== 'production') {
-      const superOnInit = config.onInit
-      config.onInit = async (payload) => {
-        await superOnInit?.(payload)
-        void payload.bin({ args: ['generate:schemas'], log: false })
+    // On init: generate schemas via the bin script, then import them and
+    // register Payload's built-in CRUD endpoints in the OpenAPI registry.
+    const superOnInit = config.onInit
+    config.onInit = async (payload) => {
+      await superOnInit?.(payload)
+
+      try {
+        // Generate the schemas file from the sanitized config
+        await generateSchemas(payload.config)
+
+        // Dynamically import the freshly-generated schemas file.
+        // Bypass Turbopack's static import analysis via AsyncFunction.
+        const absolutePath = path.resolve(process.cwd(), schemasPath)
+        const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor as new (
+          ...args: string[]
+        ) => (...args: unknown[]) => Promise<Record<string, unknown>>
+        const loadModule = new AsyncFunction('specifier', 'return await import(specifier)')
+        const schemasModule = await loadModule(pathToFileURL(absolutePath).href)
+
+        registerPayloadDefaults(collections, globals, apiPrefix, registry, {
+          collectionsSchema: schemasModule.CollectionsSchema as Parameters<
+            typeof registerPayloadDefaults
+          >[4]['collectionsSchema'],
+          globalsSchema: schemasModule.GlobalsSchema as Parameters<
+            typeof registerPayloadDefaults
+          >[4]['globalsSchema'],
+        })
+      } catch (err) {
+        payload.logger.error(
+          `payload-zodapi: Could not generate/import schemas from "${schemasPath}". ` +
+            'Built-in collection/global endpoints will not appear in the OpenAPI spec.',
+        )
+        payload.logger.error(err)
       }
+
+      resolveReady()
     }
 
     return config

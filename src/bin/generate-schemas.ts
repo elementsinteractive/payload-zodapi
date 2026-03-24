@@ -7,9 +7,11 @@ import { FetchingJSONSchemaStore, InputData, JSONSchemaInput, quicktype } from '
 
 import type { SchemaPreProcessor } from '../types'
 
+export const DEFAULT_SCHEMAS_PATH = 'src/payload-schemas.ts'
+
 // Script must define a "script" function export that accepts the sanitized config
 export const script: BinScript = async (config: SanitizedConfig) => {
-  const schemasPath = config.custom.zodApiPluginOpts?.schemasPath || 'payload-schemas.ts'
+  const schemasPath = config.custom.zodApiPluginOpts?.schemasPath || DEFAULT_SCHEMAS_PATH
   const schemaPreProcessors: SchemaPreProcessor[] =
     config.custom.zodApiPluginOpts?.schemaPreProcessors ?? []
 
@@ -74,7 +76,8 @@ const jsonSchemaToZodSchemas = async (
  * join-only version instead of the full collection definition.
  */
 const stripCollectionsJoins = (jsonSchema: JSONSchema4): JSONSchema4 => {
-  const { ...properties } = jsonSchema.properties ?? {}
+  const { collectionsJoins: _collectionsJoins, ...properties } = (jsonSchema.properties ??
+    {}) as Record<string, JSONSchema4>
 
   return {
     ...jsonSchema,
