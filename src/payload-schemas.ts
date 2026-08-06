@@ -170,6 +170,7 @@ export const PostsSelectSchema = z.object({
     "createdAt": z.boolean().optional(),
     "title": z.boolean().optional(),
     "updatedAt": z.boolean().optional(),
+    "whatever": z.boolean().optional(),
 });
 export type PostsSelect = z.infer<typeof PostsSelectSchema>;
 
@@ -269,6 +270,7 @@ export const CollectionsPostSchema = z.object({
     "id": z.string(),
     "title": z.string(),
     "updatedAt": z.string(),
+    "whatever": z.string(),
 });
 export type CollectionsPost = z.infer<typeof CollectionsPostSchema>;
 
@@ -278,6 +280,7 @@ export const PostSchema = z.object({
     "id": z.string(),
     "title": z.string().optional(),
     "updatedAt": z.string(),
+    "whatever": z.string().optional(),
     "email": z.string().optional(),
     "hash": z.union([z.null(), z.string()]).optional(),
     "lockUntil": z.union([z.null(), z.string()]).optional(),
