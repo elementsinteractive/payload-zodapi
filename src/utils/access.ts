@@ -17,7 +17,6 @@ export const specAccessResponse = async (
     const loginUrl = formatAdminURL({
       adminRoute: req.payload.getAdminURL(),
       basePath: "",
-      includeBasePath: true,
       path: "/login",
     });
 

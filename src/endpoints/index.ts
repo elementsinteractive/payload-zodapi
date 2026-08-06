@@ -1,11 +1,14 @@
-import type { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi'
-import type { CollectionConfig, GlobalConfig } from 'payload'
-import type { z } from 'zod'
+import type { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
+import type { CollectionConfig, GlobalConfig } from "payload";
+import type { z } from "zod";
 
-import { registerAuthCollectionEndpoints, registerAuthRootEndpoints } from './auth'
-import { registerCollectionEndpoints } from './collections'
-import { registerGlobalEndpoints } from './globals'
-import { registerUploadEndpoints } from './uploads'
+import {
+  registerAuthCollectionEndpoints,
+  registerAuthRootEndpoints,
+} from "./auth";
+import { registerCollectionEndpoints } from "./collections";
+import { registerGlobalEndpoints } from "./globals";
+import { registerUploadEndpoints } from "./uploads";
 
 /**
  * Registers all default Payload endpoints in the OpenAPI registry:
@@ -25,31 +28,41 @@ export function registerPayloadDefaults(
   apiPrefix: string,
   registry: OpenAPIRegistry,
   schemas: {
-    collectionsSchema?: z.ZodObject<z.ZodRawShape>
-    globalsSchema?: z.ZodObject<z.ZodRawShape>
+    collectionsSchema?: z.ZodObject<z.ZodRawShape>;
+    globalsSchema?: z.ZodObject<z.ZodRawShape>;
   },
 ) {
-  const { collectionsSchema, globalsSchema } = schemas
+  const { collectionsSchema, globalsSchema } = schemas;
 
   for (const collection of collections) {
     if (collectionsSchema) {
-      registerCollectionEndpoints(collection, apiPrefix, registry, collectionsSchema)
+      registerCollectionEndpoints(
+        collection,
+        apiPrefix,
+        registry,
+        collectionsSchema,
+      );
 
       if (collection.auth) {
-        registerAuthCollectionEndpoints(collection, apiPrefix, registry, collectionsSchema)
+        registerAuthCollectionEndpoints(
+          collection,
+          apiPrefix,
+          registry,
+          collectionsSchema,
+        );
       }
     }
 
     if (collection.upload) {
-      registerUploadEndpoints(collection, apiPrefix, registry)
+      registerUploadEndpoints(collection, apiPrefix, registry);
     }
   }
 
   if (globalsSchema) {
     for (const global of globals) {
-      registerGlobalEndpoints(global, apiPrefix, registry, globalsSchema)
+      registerGlobalEndpoints(global, apiPrefix, registry, globalsSchema);
     }
   }
 
-  registerAuthRootEndpoints(apiPrefix, registry)
+  registerAuthRootEndpoints(apiPrefix, registry);
 }

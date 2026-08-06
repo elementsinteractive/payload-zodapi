@@ -37,7 +37,9 @@ export function createDocsHandler({
 
   return async (req) => {
     const accessResponse = await specAccessResponse(req, readAccess);
-    if (accessResponse) {return accessResponse;}
+    if (accessResponse) {
+      return accessResponse;
+    }
 
     return new Response(html, {
       headers: { "content-type": "text/html" },

@@ -115,7 +115,9 @@ function createHandler<
     // ── Guard checks (optional) ───────────────────────────────────────
     for (const guard of guards || []) {
       const guardResponse = await guard(req);
-      if (guardResponse) {return guardResponse;}
+      if (guardResponse) {
+        return guardResponse;
+      }
     }
 
     // ── Request validation (always enforced: 400 on failure) ───────────
@@ -171,9 +173,11 @@ async function validateResponse(
   const schema =
     responseConfig instanceof z.ZodObject
       ? responseConfig
-      : responseConfig[response.status];
+      : (responseConfig as Record<number, AnyZodObject>)[response.status];
 
-  if (!schema) {return response;}
+  if (!schema) {
+    return response;
+  }
 
   const data = await response.clone().json();
   const result = schema.safeParse(data);

@@ -1,17 +1,17 @@
-import type { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi'
-import type { CollectionConfig } from 'payload'
+import type { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
+import type { CollectionConfig } from "payload";
 
-import { formatLabels } from 'payload'
-import { z } from 'zod'
+import { formatLabels } from "payload";
+import { z } from "zod";
 
-const authTag = 'Authentication'
+const authTag = "Authentication";
 
-const messageResponse = z.object({ message: z.string() })
+const messageResponse = z.object({ message: z.string() });
 
 const tokenResponse = z.object({
   exp: z.number(),
   token: z.string(),
-})
+});
 
 /**
  * Registers auth-specific endpoints for a single auth-enabled collection.
@@ -25,22 +25,23 @@ export function registerAuthCollectionEndpoints(
   registry: OpenAPIRegistry,
   collectionsSchema: z.ZodObject<z.ZodRawShape>,
 ) {
-  const slug = collection.slug
-  const { singular } = formatLabels(slug)
-  const basePath = `${apiPrefix}/${slug}`
-  const tags = [authTag]
+  const slug = collection.slug;
+  const { singular } = formatLabels(slug);
+  const basePath = `${apiPrefix}/${slug}`;
+  const tags = [authTag];
   const userSchema: z.ZodTypeAny =
-    (collectionsSchema.shape[slug] as undefined | z.ZodTypeAny) ?? z.record(z.string(), z.unknown())
+    (collectionsSchema.shape[slug] as undefined | z.ZodTypeAny) ??
+    z.record(z.string(), z.unknown());
 
   // POST /login
   registry.registerPath({
-    method: 'post',
+    method: "post",
     operationId: `${slug}Login`,
     path: `${basePath}/login`,
     request: {
       body: {
         content: {
-          'application/json': {
+          "application/json": {
             schema: z.object({
               email: z.string(),
               password: z.string(),
@@ -50,46 +51,46 @@ export function registerAuthCollectionEndpoints(
       },
     },
     responses: {
-      '200': {
+      "200": {
         content: {
-          'application/json': {
+          "application/json": {
             schema: tokenResponse.extend({
               user: userSchema,
             }),
           },
         },
-        description: 'Login successful',
+        description: "Login successful",
       },
-      '401': { description: 'Invalid credentials' },
+      "401": { description: "Invalid credentials" },
     },
     summary: `Log in as a ${singular}`,
     tags,
-  })
+  });
 
   // POST /logout
   registry.registerPath({
-    method: 'post',
+    method: "post",
     operationId: `${slug}Logout`,
     path: `${basePath}/logout`,
     responses: {
-      '200': {
-        content: { 'application/json': { schema: messageResponse } },
-        description: 'Logged out',
+      "200": {
+        content: { "application/json": { schema: messageResponse } },
+        description: "Logged out",
       },
     },
-    summary: 'Log out',
+    summary: "Log out",
     tags,
-  })
+  });
 
   // GET /me
   registry.registerPath({
-    method: 'get',
+    method: "get",
     operationId: `${slug}Me`,
     path: `${basePath}/me`,
     responses: {
-      '200': {
+      "200": {
         content: {
-          'application/json': {
+          "application/json": {
             schema: z.object({
               collection: z.string(),
               exp: z.number().optional(),
@@ -98,22 +99,22 @@ export function registerAuthCollectionEndpoints(
             }),
           },
         },
-        description: 'Current user',
+        description: "Current user",
       },
     },
-    summary: 'Get current user',
+    summary: "Get current user",
     tags,
-  })
+  });
 
   // POST /refresh-token
   registry.registerPath({
-    method: 'post',
+    method: "post",
     operationId: `${slug}RefreshToken`,
     path: `${basePath}/refresh-token`,
     responses: {
-      '200': {
+      "200": {
         content: {
-          'application/json': {
+          "application/json": {
             schema: z.object({
               exp: z.number(),
               refreshedToken: z.string(),
@@ -121,46 +122,46 @@ export function registerAuthCollectionEndpoints(
             }),
           },
         },
-        description: 'Token refreshed',
+        description: "Token refreshed",
       },
     },
-    summary: 'Refresh auth token',
+    summary: "Refresh auth token",
     tags,
-  })
+  });
 
   // POST /forgot-password
   registry.registerPath({
-    method: 'post',
+    method: "post",
     operationId: `${slug}ForgotPassword`,
     path: `${basePath}/forgot-password`,
     request: {
       body: {
         content: {
-          'application/json': {
+          "application/json": {
             schema: z.object({ email: z.string() }),
           },
         },
       },
     },
     responses: {
-      '200': {
-        content: { 'application/json': { schema: messageResponse } },
-        description: 'Password reset email sent',
+      "200": {
+        content: { "application/json": { schema: messageResponse } },
+        description: "Password reset email sent",
       },
     },
-    summary: 'Request password reset',
+    summary: "Request password reset",
     tags,
-  })
+  });
 
   // POST /reset-password
   registry.registerPath({
-    method: 'post',
+    method: "post",
     operationId: `${slug}ResetPassword`,
     path: `${basePath}/reset-password`,
     request: {
       body: {
         content: {
-          'application/json': {
+          "application/json": {
             schema: z.object({
               password: z.string(),
               token: z.string(),
@@ -170,91 +171,91 @@ export function registerAuthCollectionEndpoints(
       },
     },
     responses: {
-      '200': {
+      "200": {
         content: {
-          'application/json': {
+          "application/json": {
             schema: tokenResponse.extend({
               user: userSchema,
             }),
           },
         },
-        description: 'Password reset successful',
+        description: "Password reset successful",
       },
     },
-    summary: 'Reset password with token',
+    summary: "Reset password with token",
     tags,
-  })
+  });
 
   // POST /unlock
   registry.registerPath({
-    method: 'post',
+    method: "post",
     operationId: `${slug}Unlock`,
     path: `${basePath}/unlock`,
     request: {
       body: {
         content: {
-          'application/json': {
+          "application/json": {
             schema: z.object({ email: z.string() }),
           },
         },
       },
     },
     responses: {
-      '200': {
-        content: { 'application/json': { schema: messageResponse } },
-        description: 'Account unlocked',
+      "200": {
+        content: { "application/json": { schema: messageResponse } },
+        description: "Account unlocked",
       },
     },
-    summary: 'Unlock a locked account',
+    summary: "Unlock a locked account",
     tags,
-  })
+  });
 
   // POST /verify/{id}
   registry.registerPath({
-    method: 'post',
+    method: "post",
     operationId: `${slug}VerifyEmail`,
     path: `${basePath}/verify/{id}`,
     request: {
       params: z.object({ id: z.string() }),
     },
     responses: {
-      '200': {
-        content: { 'application/json': { schema: messageResponse } },
-        description: 'Email verified',
+      "200": {
+        content: { "application/json": { schema: messageResponse } },
+        description: "Email verified",
       },
     },
-    summary: 'Verify email address',
+    summary: "Verify email address",
     tags,
-  })
+  });
 
   // GET /init
   registry.registerPath({
-    method: 'get',
+    method: "get",
     operationId: `${slug}Init`,
     path: `${basePath}/init`,
     responses: {
-      '200': {
+      "200": {
         content: {
-          'application/json': {
+          "application/json": {
             schema: z.object({ initialized: z.boolean() }),
           },
         },
-        description: 'Initialization status',
+        description: "Initialization status",
       },
     },
-    summary: 'Check if first user has been created',
+    summary: "Check if first user has been created",
     tags,
-  })
+  });
 
   // POST /first-register
   registry.registerPath({
-    method: 'post',
+    method: "post",
     operationId: `${slug}FirstRegister`,
     path: `${basePath}/first-register`,
     request: {
       body: {
         content: {
-          'application/json': {
+          "application/json": {
             schema: z.object({
               email: z.string(),
               password: z.string(),
@@ -264,20 +265,20 @@ export function registerAuthCollectionEndpoints(
       },
     },
     responses: {
-      '200': {
+      "200": {
         content: {
-          'application/json': {
+          "application/json": {
             schema: tokenResponse.extend({
               user: userSchema,
             }),
           },
         },
-        description: 'First user registered',
+        description: "First user registered",
       },
     },
-    summary: 'Register the first user',
+    summary: "Register the first user",
     tags,
-  })
+  });
 }
 
 /**
@@ -285,22 +286,25 @@ export function registerAuthCollectionEndpoints(
  *
  * Covers: GET /access — returns the access control hierarchy.
  */
-export function registerAuthRootEndpoints(apiPrefix: string, registry: OpenAPIRegistry) {
+export function registerAuthRootEndpoints(
+  apiPrefix: string,
+  registry: OpenAPIRegistry,
+) {
   registry.registerPath({
-    method: 'get',
-    operationId: 'access',
+    method: "get",
+    operationId: "access",
     path: `${apiPrefix}/access`,
     responses: {
-      '200': {
+      "200": {
         content: {
-          'application/json': {
+          "application/json": {
             schema: z.record(z.string(), z.unknown()),
           },
         },
-        description: 'Access control hierarchy for the current user',
+        description: "Access control hierarchy for the current user",
       },
     },
-    summary: 'Get access control hierarchy',
+    summary: "Get access control hierarchy",
     tags: [authTag],
-  })
+  });
 }

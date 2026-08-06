@@ -1,6 +1,5 @@
-import type { PayloadRequest } from "payload";
-
 import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
+import type { PayloadRequest } from "payload";
 
 import { createSpecHandler } from "../handlers/specHandler";
 import "../testHelpers"; // Polyfills Response
@@ -28,6 +27,7 @@ const createConfig = (
 ) => ({
   metadata: { title: "Test API", version: "1.0.0" },
   openapiVersion: "3.0" as const,
+  readyPromise: Promise.resolve(),
   ...overrides,
 });
 

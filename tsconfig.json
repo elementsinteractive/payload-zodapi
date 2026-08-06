@@ -1,26 +1,34 @@
 {
-  "compilerOptions": {
-    "baseUrl": ".",
-    "lib": ["DOM", "DOM.Iterable", "ES2022"],
-    "rootDir": "./",
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "react-jsx",
-    "incremental": true,
-    "emitDeclarationOnly": true,
-    "target": "ES2022",
-    "composite": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ]
-  },
-  "include": ["./src/**/*.ts", "./src/**/*.tsx", "./dev/next-env.d.ts", ".next/dev/types/**/*.ts"]
+	"compilerOptions": {
+		"lib": ["DOM", "DOM.Iterable", "ES2022"],
+		"types": ["vitest/globals"],
+		"rootDir": "./",
+		"allowJs": true,
+		"skipLibCheck": true,
+		"strict": true,
+		"esModuleInterop": true,
+		"module": "esnext",
+		"moduleResolution": "bundler",
+		"resolveJsonModule": true,
+		"isolatedModules": true,
+		"jsx": "react-jsx",
+		"incremental": true,
+		"emitDeclarationOnly": true,
+		"target": "ES2022",
+		"composite": true,
+		"plugins": [
+			{
+				"name": "next"
+			}
+		],
+		"paths": {
+			"@/*": ["./src/*"]
+		}
+	},
+	"include": [
+		"./src/**/*.ts",
+		"./src/**/*.tsx",
+		"./dev/next-env.d.ts",
+		".next/dev/types/**/*.ts"
+	]
 }
