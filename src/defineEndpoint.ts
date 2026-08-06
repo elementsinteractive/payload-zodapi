@@ -1,5 +1,6 @@
 import type { Endpoint, PayloadHandler, PayloadRequest } from "payload";
 
+import { addDataAndFileToRequest } from "payload";
 import { z } from "zod";
 
 import type {
@@ -49,6 +50,11 @@ export const queryArray = <T extends z.ZodTypeAny>(schema: T) =>
  *     params: z.object({ id: z.string().uuid() }),
  *     query: z.object({ include: z.string().optional() }),
  *   },
+ *  guards: [async (req) => {
+ *    if (!req.user) {
+ *       return Response.json({ error: "Not authenticated" }, { status: 401 });
+ *     }
+ *   }],
  *   handler: async (req, { pathParams, queryParams }) => {
  *     const { id } = pathParams;
  *     return Response.json({ id });
@@ -62,6 +68,7 @@ export function defineEndpoint<
   TQuery extends AnyZodObject | undefined = undefined,
   TBody extends AnyZodObject | undefined = undefined,
 >(config: {
+  guards?: ((req: PayloadRequest) => Promise<Response | undefined>)[];
   handler: (
     req: PayloadRequest,
     input: ValidatedInput<TParams, TQuery, TBody, TPath>,
@@ -74,12 +81,12 @@ export function defineEndpoint<
   } & Omit<EndpointOpenApiConfig, "body" | "params" | "query">;
   path: TPath;
 }): Endpoint {
-  const { handler, openapi, ...rest } = config;
+  const { guards, handler, openapi, ...rest } = config;
 
   return {
     ...rest,
     custom: openapi ? { openapi: openapi as EndpointOpenApiConfig } : undefined,
-    handler: createHandler(handler, openapi),
+    handler: createHandler(handler, openapi, guards),
   };
 }
 
@@ -100,10 +107,17 @@ function createHandler<
     response?: AnyZodObject | Record<number, AnyZodObject>;
     responseValidation?: ValidationMode;
   },
+  guards?: ((req: PayloadRequest) => Promise<Response | undefined>)[],
 ): PayloadHandler {
   const resMode: ValidationMode = openapi?.responseValidation ?? "enforce";
 
   return async (req) => {
+    // ── Guard checks (optional) ───────────────────────────────────────
+    for (const guard of guards || []) {
+      const guardResponse = await guard(req);
+      if (guardResponse) {return guardResponse;}
+    }
+
     // ── Request validation (always enforced: 400 on failure) ───────────
     let input: ValidatedInput<TParams, TQuery, TBody>;
     try {
@@ -115,10 +129,10 @@ function createHandler<
         ? await openapi.query.parseAsync(req.query)
         : (req.query ?? {});
 
-      const body =
-        openapi?.body && req.data
-          ? await openapi.body.parseAsync(req.data)
-          : undefined;
+      await addDataAndFileToRequest(req);
+      const body = openapi?.body
+        ? await openapi.body.parseAsync(req.data)
+        : undefined;
 
       input = { body, pathParams, queryParams } as ValidatedInput<
         TParams,

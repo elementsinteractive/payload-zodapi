@@ -6,15 +6,13 @@ import { createSpecHandler } from "../handlers/specHandler";
 import "../testHelpers"; // Polyfills Response
 
 // Mock the access utility
-jest.mock("../utils/access", () => ({
-  specAccessResponse: jest.fn().mockResolvedValue(undefined),
+vi.mock("../utils/access", () => ({
+  specAccessResponse: vi.fn().mockResolvedValue(undefined),
 }));
 
 import { specAccessResponse } from "../utils/access";
 
-const mockedAccess = specAccessResponse as jest.MockedFunction<
-  typeof specAccessResponse
->;
+const mockedAccess = vi.mocked(specAccessResponse);
 
 const createMockRequest = () =>
   ({
@@ -129,7 +127,7 @@ describe("createSpecHandler", () => {
     const mockAccessResponse = new Response(null, { status: 302 });
     mockedAccess.mockResolvedValueOnce(mockAccessResponse);
 
-    const accessFn = jest.fn();
+    const accessFn = vi.fn();
     const registry = new OpenAPIRegistry();
     const handler = createSpecHandler(
       registry,

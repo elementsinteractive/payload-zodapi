@@ -6,7 +6,7 @@ import { createMockRequest } from "../testHelpers";
 describe("defineEndpoint", () => {
   it("creates a basic endpoint without openapi config", () => {
     const endpoint = defineEndpoint({
-      handler: jest.fn(),
+      handler: vi.fn(),
       method: "get",
       path: "/test",
     });
@@ -18,7 +18,7 @@ describe("defineEndpoint", () => {
 
   it("attaches openapi metadata to custom.openapi", () => {
     const endpoint = defineEndpoint({
-      handler: jest.fn(),
+      handler: vi.fn(),
       method: "post",
       openapi: {
         description: "Creates a new item",
@@ -42,7 +42,7 @@ describe("defineEndpoint", () => {
     const response = z.object({ id: z.string(), name: z.string() });
 
     const endpoint = defineEndpoint({
-      handler: jest.fn(),
+      handler: vi.fn(),
       method: "put",
       openapi: { body, params, query, response, summary: "Update item" },
       path: "/:id",
@@ -59,7 +59,7 @@ describe("defineEndpoint", () => {
     const error = z.object({ error: z.string() });
 
     const endpoint = defineEndpoint({
-      handler: jest.fn(),
+      handler: vi.fn(),
       method: "post",
       openapi: { response: { 201: success, 400: error }, summary: "Create" },
       path: "/items",
@@ -75,9 +75,7 @@ describe("defineEndpoint", () => {
 
   describe("path param inference", () => {
     it("parses params from the path string when no params schema is given", async () => {
-      const handlerFn = jest
-        .fn()
-        .mockResolvedValue(Response.json({ ok: true }));
+      const handlerFn = vi.fn().mockResolvedValue(Response.json({ ok: true }));
       const endpoint = defineEndpoint({
         handler: handlerFn,
         method: "get",
@@ -98,9 +96,7 @@ describe("defineEndpoint", () => {
     });
 
     it("passes through all route params from the request", async () => {
-      const handlerFn = jest
-        .fn()
-        .mockResolvedValue(Response.json({ ok: true }));
+      const handlerFn = vi.fn().mockResolvedValue(Response.json({ ok: true }));
       const endpoint = defineEndpoint({
         handler: handlerFn,
         method: "get",
@@ -121,9 +117,7 @@ describe("defineEndpoint", () => {
     });
 
     it("passes empty pathParams for a path with no params", async () => {
-      const handlerFn = jest
-        .fn()
-        .mockResolvedValue(Response.json({ ok: true }));
+      const handlerFn = vi.fn().mockResolvedValue(Response.json({ ok: true }));
       const endpoint = defineEndpoint({
         handler: handlerFn,
         method: "get",
@@ -140,9 +134,7 @@ describe("defineEndpoint", () => {
     });
 
     it("uses explicit params schema over the inferred one", async () => {
-      const handlerFn = jest
-        .fn()
-        .mockResolvedValue(Response.json({ ok: true }));
+      const handlerFn = vi.fn().mockResolvedValue(Response.json({ ok: true }));
       const endpoint = defineEndpoint({
         handler: handlerFn,
         method: "get",
@@ -157,11 +149,150 @@ describe("defineEndpoint", () => {
     });
   });
 
+  describe("guards", () => {
+    it("does not run validation if the guard fails", async () => {
+      const guard = vi.fn().mockImplementation((req) => {
+        if (!req.user) {
+          return Response.json({ error: "Not authenticated" }, { status: 401 });
+        }
+      });
+      const handlerFn = vi.fn().mockResolvedValue(Response.json({ ok: true }));
+
+      const endpoint = defineEndpoint({
+        guards: [guard],
+        handler: handlerFn,
+        method: "post",
+        openapi: { body: z.object({ name: z.string() }) },
+        path: "/items",
+      });
+
+      const req = createMockRequest({
+        data: { notName: "Test Item" },
+        user: null,
+      });
+      const response = await endpoint.handler(req);
+
+      expect(response.status).toBe(401);
+      expect(await response.json()).toMatchObject({
+        error: "Not authenticated",
+      });
+
+      expect(guard).toHaveBeenCalled();
+      expect(handlerFn).not.toHaveBeenCalled();
+    });
+
+    it("runs multiple guards in order and stops on the first failure", async () => {
+      const guard1 = vi.fn().mockResolvedValue(undefined);
+      const guard2 = vi.fn().mockImplementation((req) => {
+        if (!req.user) {
+          return Response.json({ error: "Not authenticated" }, { status: 401 });
+        }
+      });
+      const guard3 = vi.fn().mockResolvedValue(undefined);
+      const handlerFn = vi.fn().mockResolvedValue(Response.json({ ok: true }));
+
+      const endpoint = defineEndpoint({
+        guards: [guard1, guard2, guard3],
+        handler: handlerFn,
+        method: "post",
+        openapi: { body: z.object({ name: z.string() }) },
+        path: "/items",
+      });
+
+      const req = createMockRequest({
+        data: { notName: "Test Item" },
+        user: null,
+      });
+      const response = await endpoint.handler(req);
+
+      expect(response.status).toBe(401);
+      expect(await response.json()).toMatchObject({
+        error: "Not authenticated",
+      });
+
+      expect(guard1).toHaveBeenCalled();
+      expect(guard2).toHaveBeenCalled();
+      expect(guard3).not.toHaveBeenCalled();
+      expect(handlerFn).not.toHaveBeenCalled();
+    });
+
+    it("runs the handler if all guards pass", async () => {
+      const guard1 = vi.fn().mockResolvedValue(undefined);
+      const guard2 = vi.fn().mockResolvedValue(undefined);
+      const handlerFn = vi.fn().mockResolvedValue(Response.json({ ok: true }));
+
+      const endpoint = defineEndpoint({
+        guards: [guard1, guard2],
+        handler: handlerFn,
+        method: "post",
+        openapi: { body: z.object({ name: z.string() }) },
+        path: "/items",
+      });
+
+      const req = createMockRequest({ data: { name: "Test Item" } });
+      const response = await endpoint.handler(req);
+
+      expect(response.status).toBe(200);
+      expect(guard1).toHaveBeenCalled();
+      expect(guard2).toHaveBeenCalled();
+      expect(handlerFn).toHaveBeenCalled();
+    });
+  });
+
+  describe("body validation", () => {
+    it("returns 200 for valid body", async () => {
+      const handlerFn = vi.fn().mockResolvedValue(Response.json({ ok: true }));
+      const endpoint = defineEndpoint({
+        handler: handlerFn,
+        method: "post",
+        openapi: { body: z.object({ name: z.string() }) },
+        path: "/items",
+      });
+
+      const req = createMockRequest({
+        data: { name: "Test Item" },
+      });
+      const response = await endpoint.handler(req);
+
+      expect(response.status).toBe(200);
+    });
+
+    it("returns 400 for invalid body", async () => {
+      const handlerFn = vi.fn().mockResolvedValue(Response.json({ ok: true }));
+      const endpoint = defineEndpoint({
+        handler: handlerFn,
+        method: "post",
+        openapi: { body: z.object({ name: z.string() }) },
+        path: "/items",
+      });
+
+      const req = createMockRequest({
+        data: { notName: "Test Item" },
+      });
+      const response = await endpoint.handler(req);
+
+      expect(response.status).toBe(400);
+    });
+
+    it("can handle empty body", async () => {
+      const handlerFn = vi.fn().mockResolvedValue(Response.json({ ok: true }));
+      const endpoint = defineEndpoint({
+        handler: handlerFn,
+        method: "post",
+        openapi: { body: z.object({ name: z.string() }) },
+        path: "/items",
+      });
+
+      const req = createMockRequest({ data: undefined });
+      const response = await endpoint.handler(req);
+
+      expect(response.status).toBe(400);
+    });
+  });
+
   describe("param validation", () => {
     it("passes parsed pathParams to handler", async () => {
-      const handlerFn = jest
-        .fn()
-        .mockResolvedValue(Response.json({ ok: true }));
+      const handlerFn = vi.fn().mockResolvedValue(Response.json({ ok: true }));
       const endpoint = defineEndpoint({
         handler: handlerFn,
         method: "get",
@@ -180,7 +311,7 @@ describe("defineEndpoint", () => {
 
     it("returns 400 on invalid params", async () => {
       const endpoint = defineEndpoint({
-        handler: jest.fn(),
+        handler: vi.fn(),
         method: "get",
         openapi: { params: z.object({ id: z.string().uuid() }) },
         path: "/:id",
@@ -198,9 +329,7 @@ describe("defineEndpoint", () => {
 
   describe("query validation", () => {
     it("passes parsed queryParams to handler", async () => {
-      const handlerFn = jest
-        .fn()
-        .mockResolvedValue(Response.json({ ok: true }));
+      const handlerFn = vi.fn().mockResolvedValue(Response.json({ ok: true }));
       const endpoint = defineEndpoint({
         handler: handlerFn,
         method: "get",
@@ -218,9 +347,7 @@ describe("defineEndpoint", () => {
     });
 
     it("applies zod defaults", async () => {
-      const handlerFn = jest
-        .fn()
-        .mockResolvedValue(Response.json({ ok: true }));
+      const handlerFn = vi.fn().mockResolvedValue(Response.json({ ok: true }));
       const endpoint = defineEndpoint({
         handler: handlerFn,
         method: "get",
@@ -243,9 +370,7 @@ describe("defineEndpoint", () => {
     });
 
     it("strips extra query params (zod default)", async () => {
-      const handlerFn = jest
-        .fn()
-        .mockResolvedValue(Response.json({ ok: true }));
+      const handlerFn = vi.fn().mockResolvedValue(Response.json({ ok: true }));
       const endpoint = defineEndpoint({
         handler: handlerFn,
         method: "get",
@@ -264,7 +389,7 @@ describe("defineEndpoint", () => {
 
     it("returns 400 on invalid query", async () => {
       const endpoint = defineEndpoint({
-        handler: jest.fn(),
+        handler: vi.fn(),
         method: "get",
         openapi: { query: z.object({ page: z.coerce.number().positive() }) },
         path: "/items",
@@ -299,9 +424,7 @@ describe("defineEndpoint", () => {
     });
 
     it("delivers multi-value params as an array in the handler", async () => {
-      const handlerFn = jest
-        .fn()
-        .mockResolvedValue(Response.json({ ok: true }));
+      const handlerFn = vi.fn().mockResolvedValue(Response.json({ ok: true }));
       const endpoint = defineEndpoint({
         handler: handlerFn,
         method: "get",
@@ -321,9 +444,7 @@ describe("defineEndpoint", () => {
     });
 
     it("normalises a single string query value into an array in the handler", async () => {
-      const handlerFn = jest
-        .fn()
-        .mockResolvedValue(Response.json({ ok: true }));
+      const handlerFn = vi.fn().mockResolvedValue(Response.json({ ok: true }));
       const endpoint = defineEndpoint({
         handler: handlerFn,
         method: "get",
@@ -398,7 +519,7 @@ describe("defineEndpoint", () => {
   });
 
   it("falls back to raw req values when no openapi config", async () => {
-    const handlerFn = jest.fn().mockResolvedValue(Response.json({ ok: true }));
+    const handlerFn = vi.fn().mockResolvedValue(Response.json({ ok: true }));
     const endpoint = defineEndpoint({
       handler: handlerFn,
       method: "get",

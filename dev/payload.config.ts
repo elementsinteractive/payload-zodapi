@@ -91,7 +91,7 @@ const buildConfigWithMemoryDB = async () => {
     email: testEmailAdapter,
     endpoints: [
       defineEndpoint({
-        handler: async () => {
+        handler: () => {
           return Response.json({
             status: 'ok',
             uptime: process.uptime(),

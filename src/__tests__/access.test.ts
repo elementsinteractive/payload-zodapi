@@ -4,7 +4,7 @@ import { createMockRequest } from "../testHelpers";
 import { specAccessResponse } from "../utils/access";
 
 // Mock payload/shared to avoid pulling in the full Payload module tree
-jest.mock("payload/shared", () => ({
+vi.mock("payload/shared", () => ({
   formatAdminURL: ({
     adminRoute,
     basePath,
@@ -20,7 +20,7 @@ const mockReq = (user?: object) =>
   createMockRequest({
     headers: new Headers({ host: "example.com" }),
     payload: {
-      getAdminURL: () => "/admin",
+      getAdminURL: () => "http://example.com/admin",
     } as never,
     protocol: "https:" as never,
     t: ((key: string) => key) as never,
@@ -34,28 +34,30 @@ describe("specAccessResponse", () => {
   });
 
   it("returns undefined when access returns true", async () => {
-    const access = jest.fn().mockReturnValue(true);
+    const access = vi.fn().mockReturnValue(true);
     const result = await specAccessResponse(mockReq({ id: "1" }), access);
     expect(result).toBeUndefined();
   });
 
   it("returns undefined when async access resolves true", async () => {
-    const access = jest.fn().mockResolvedValue(true);
+    const access = vi.fn().mockResolvedValue(true);
     const result = await specAccessResponse(mockReq({ id: "1" }), access);
     expect(result).toBeUndefined();
   });
 
   it("redirects to login when access returns false and no user", async () => {
-    const access = jest.fn().mockReturnValue(false);
+    const access = vi.fn().mockReturnValue(false);
     const result = await specAccessResponse(mockReq(), access);
 
     expect(result).toBeDefined();
     expect(result?.status).toBe(302);
-    expect(result?.headers.get("location")).toBe("/admin/login");
+    expect(result?.headers.get("location")).toBe(
+      "http://example.com/admin/login",
+    );
   });
 
   it("throws 403 APIError when access returns false and user is present", async () => {
-    const access = jest.fn().mockReturnValue(false);
+    const access = vi.fn().mockReturnValue(false);
 
     await expect(
       specAccessResponse(mockReq({ id: "1" }), access),
@@ -69,7 +71,7 @@ describe("specAccessResponse", () => {
   });
 
   it("passes req to the access function", async () => {
-    const access = jest.fn().mockReturnValue(true);
+    const access = vi.fn().mockReturnValue(true);
     const req = mockReq({ id: "1" });
     await specAccessResponse(req, access);
 

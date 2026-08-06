@@ -96,7 +96,7 @@ describe("schema helpers", () => {
 });
 
 describe("registerEndpoint", () => {
-  const mockHandler = jest.fn();
+  const mockHandler = vi.fn();
 
   it("returns endpoint unchanged when no openapi config", () => {
     const registry = new OpenAPIRegistry();
@@ -165,7 +165,7 @@ describe("registerEndpoint", () => {
   });
 
   it("logs error and skips unsupported connect method", () => {
-    const spy = jest.spyOn(console, "error").mockImplementation();
+    const spy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     const registry = new OpenAPIRegistry();
     const endpoint = createMockEndpoint({
       custom: { openapi: { summary: "Connect" } },
@@ -177,11 +177,12 @@ describe("registerEndpoint", () => {
     expect(registerEndpoint(endpoint, "/api", registry)).toBe(endpoint);
     expect(spy).toHaveBeenCalledWith("unsupported openapi method type connect");
     spy.mockRestore();
+
   });
 });
 
 describe("registerEndpoints", () => {
-  const mockHandler = jest.fn();
+  const mockHandler = vi.fn();
 
   it("returns undefined for undefined or false", () => {
     const registry = new OpenAPIRegistry();

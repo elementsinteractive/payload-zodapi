@@ -92,7 +92,7 @@ const stripCollectionsJoins = (jsonSchema: JSONSchema4): JSONSchema4 => {
  * Applies the built-in `collectionsJoins` stripping and any additional
  * user-provided pre-processors to a Payload JSON schema.
  */
-const preprocessJsonSchema = (
+export const preprocessJsonSchema = (
   jsonSchema: JSONSchema4,
   preProcessors: SchemaPreProcessor[] = [],
 ): JSONSchema4 => {
