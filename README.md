@@ -1,6 +1,6 @@
 # payload-zodapi
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 A [Payload CMS](https://payloadcms.com) plugin that generates a unified OpenAPI spec for both Payload's built-in collection/global endpoints and your custom endpoints, with full Zod-based request/response validation and TypeScript type inference.
@@ -243,6 +243,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   <tbody>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/sacha-c"><img src="https://avatars.githubusercontent.com/u/3247529?v=4?s=50" width="50px;" alt="Sacha Brouté"/><br /><sub><b>Sacha Brouté</b></sub></a><br /><a href="https://github.com/elementsinteractive/payload-zodapi/commits?author=sacha-c" title="Code">💻</a> <a href="#ideas-sacha-c" title="Ideas, Planning, & Feedback">🤔</a> <a href="#maintenance-sacha-c" title="Maintenance">🚧</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/scastlara"><img src="https://avatars.githubusercontent.com/u/7606872?v=4?s=50" width="50px;" alt="Sergio Castillo"/><br /><sub><b>Sergio Castillo</b></sub></a><br /><a href="https://github.com/elementsinteractive/payload-zodapi/commits?author=scastlara" title="Code">💻</a> <a href="#maintenance-scastlara" title="Maintenance">🚧</a></td>
     </tr>
   </tbody>
   <tfoot>
