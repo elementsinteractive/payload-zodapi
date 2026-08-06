@@ -47,25 +47,32 @@ The OpenAPI spec is served at `/api/openapi.json` and interactive docs at `/api/
 Use `defineEndpoint` instead of a raw Payload endpoint object. It handles validation, type inference, and OpenAPI registration automatically.
 
 ```ts
+import type { CollectionConfig } from "payload";
 import { z } from "zod";
 import { defineEndpoint } from "payload-zodapi";
 
-export const getItem = defineEndpoint({
+const getPost = defineEndpoint({
   path: "/:id",
   method: "get",
   openapi: {
-    summary: "Get item by ID",
-    tags: ["Items"],
+    summary: "Get post by ID",
+    tags: ["Posts"],
     params: z.object({ id: z.string().uuid() }),
     query: z.object({ include: z.string().optional() }),
-    response: z.object({ id: z.string(), name: z.string() }),
+    response: z.object({ id: z.string(), title: z.string() }),
   },
   handler: async (req, { pathParams, queryParams }) => {
     const { id } = pathParams;       // { id: string }
     const { include } = queryParams; // { include?: string }
-    return Response.json({ id, name: "Example" });
+    return Response.json({ id, title: "Hello world" });
   },
 });
+
+export const Posts: CollectionConfig = {
+  slug: "posts",
+  endpoints: [getPost],
+  fields: [{ name: "title", type: "text" }],
+};
 ```
 
 ### Automatic Path Param Inference
@@ -74,11 +81,11 @@ Omit `params` and path params are inferred directly from the `:param` segments i
 
 ```ts
 defineEndpoint({
-  path: "/assets/:tenantId/:platform",
+  path: "/posts/:slug/:version",
   method: "get",
   handler: async (req, { pathParams }) => {
-    // pathParams: { tenantId: string; platform: string }
-    const { tenantId, platform } = pathParams;
+    // pathParams: { slug: string; version: string }
+    const { slug, version } = pathParams;
   },
 });
 ```
@@ -87,16 +94,16 @@ Provide an explicit `params` schema when you need stricter validation:
 
 ```ts
 defineEndpoint({
-  path: "/assets/:tenantId/:platform",
+  path: "/posts/:id/:status",
   method: "get",
   openapi: {
     params: z.object({
-      tenantId: z.string().uuid(),
-      platform: z.enum(["ios", "android"]),
+      id: z.string().uuid(),
+      status: z.enum(["draft", "published"]),
     }),
   },
   handler: async (req, { pathParams }) => {
-    // pathParams: { tenantId: string; platform: "ios" | "android" }
+    // pathParams: { id: string; status: "draft" | "published" }
   },
 });
 ```
