@@ -1,218 +1,223 @@
-# Payload Plugin Template
+# payload-zodapi
 
-A template repo to create a [Payload CMS](https://payloadcms.com) plugin.
+A [Payload CMS](https://payloadcms.com) plugin that generates a unified OpenAPI spec for both Payload's built-in collection/global endpoints and your custom endpoints, with full Zod-based request/response validation and TypeScript type inference.
 
-Payload is built with a robust infrastructure intended to support Plugins with ease. This provides a simple, modular, and reusable way for developers to extend the core capabilities of Payload.
+## Why
 
-To build your own Payload plugin, all you need is:
+Payload gives you a powerful API out of the box, but there's no built-in way to document it or validate custom endpoints consistently. This plugin bridges that gap:
 
-- An understanding of the basic Payload concepts
-- And some JavaScript/Typescript experience
+- **One spec for everything** — built-in CRUD, auth, upload, and version endpoints are documented alongside your custom ones, all in a single OpenAPI document served at `/api/openapi.json`.
+- **Type-safe custom endpoints** — `defineEndpoint` wraps Payload endpoint handlers with Zod validation for path params, query params, and request/response bodies. You get full type inference with zero boilerplate.
+- **Zod schema generation** — a `generate:schemas` bin command converts the Payload JSON schema into TypeScript Zod schemas, which you can use for response validation, data transformation, or anywhere else you need runtime schema checks.
 
-## Background
+## Installation
 
-Here is a short recap on how to integrate plugins with Payload, to learn more visit the [plugin overview page](https://payloadcms.com/docs/plugins/overview).
+```bash
+pnpm add payload-zodapi
+# or
+npm install payload-zodapi
+```
 
-### How to install a plugin
+## Setup
 
-To install any plugin, simply add it to your payload.config() in the Plugin array.
+Register the plugin in your `payload.config.ts`:
 
 ```ts
-import myPlugin from 'my-plugin'
+import { zodApiPlugin } from "payload-zodapi";
 
-export const config = buildConfig({
+export default buildConfig({
   plugins: [
-    // You can pass options to the plugin
-    myPlugin({
-      enabled: true,
+    zodApiPlugin({
+      openapiVersion: "3.0",
+      metadata: { title: "My API", version: "1.0.0" },
     }),
   ],
-})
-```
-
-### Initialization
-
-The initialization process goes in the following order:
-
-1. Incoming config is validated
-2. **Plugins execute**
-3. Default options are integrated
-4. Sanitization cleans and validates data
-5. Final config gets initialized
-
-## Building the Plugin
-
-When you build a plugin, you are purely building a feature for your project and then abstracting it outside of the project.
-
-### Template Files
-
-In the Payload [plugin template](https://github.com/payloadcms/payload/tree/main/templates/plugin), you will see a common file structure that is used across all plugins:
-
-1. root folder
-2. /src folder
-3. /dev folder
-
-#### Root
-
-In the root folder, you will see various files that relate to the configuration of the plugin. We set up our environment in a similar manner in Payload core and across other projects, so hopefully these will look familiar:
-
-- **README**.md\* - This contains instructions on how to use the template. When you are ready, update this to contain instructions on how to use your Plugin.
-- **package**.json\* - Contains necessary scripts and dependencies. Overwrite the metadata in this file to describe your Plugin.
-- .**eslint**.config.js - Eslint configuration for reporting on problematic patterns.
-- .**gitignore** - List specific untracked files to omit from Git.
-- .**prettierrc**.json - Configuration for Prettier code formatting.
-- **tsconfig**.json - Configures the compiler options for TypeScript
-- .**swcrc** - Configuration for SWC, a fast compiler that transpiles and bundles TypeScript.
-- **vitest**.config.js - Config file for Vitest, defining how tests are run and how modules are resolved
-
-**IMPORTANT\***: You will need to modify these files.
-
-#### Dev
-
-In the dev folder, you’ll find a basic payload project, created with `npx create-payload-app` and the blank template.
-
-**IMPORTANT**: Make a copy of the `.env.example` file and rename it to `.env`. Update the `DATABASE_URL` to match the database you are using and your plugin name. Update `PAYLOAD_SECRET` to a unique string.
-**You will not be able to run `pnpm/yarn dev` until you have created this `.env` file.**
-
-`myPlugin` has already been added to the `payload.config()` file in this project.
-
-```ts
-plugins: [
-  myPlugin({
-    collections: {
-      posts: true,
+  custom: {
+    zodApiPluginOpts: {
+      schemasPath: "src/payload-schemas.ts", // output path for generated Zod schemas
     },
-  }),
-]
+  },
+});
 ```
 
-Later when you rename the plugin or add additional options, **make sure to update it here**.
+The OpenAPI spec is served at `/api/openapi.json` and interactive docs at `/api/docs`.
 
-You may wish to add collections or expand the test project depending on the purpose of your plugin. Just make sure to keep this dev environment as simplified as possible - users should be able to install your plugin without additional configuration required.
+## Defining Custom Endpoints
 
-When you’re ready to start development, initiate the project with `pnpm/npm/yarn dev` and pull up [http://localhost:3000](http://localhost:3000) in your browser.
-
-#### Src
-
-Now that we have our environment setup and we have a dev project ready to - it’s time to build the plugin!
-
-**index.ts**
-
-The essence of a Payload plugin is simply to extend the payload config - and that is exactly what we are doing in this file.
+Use `defineEndpoint` instead of a raw Payload endpoint object. It handles validation, type inference, and OpenAPI registration automatically.
 
 ```ts
-export const myPlugin =
-  (pluginOptions: MyPluginConfig) =>
-  (config: Config): Config => {
-    // do cool stuff with the config here
+import { z } from "zod";
+import { defineEndpoint } from "payload-zodapi";
 
-    return config
+export const getItem = defineEndpoint({
+  path: "/:id",
+  method: "get",
+  openapi: {
+    summary: "Get item by ID",
+    tags: ["Items"],
+    params: z.object({ id: z.string().uuid() }),
+    query: z.object({ include: z.string().optional() }),
+    response: z.object({ id: z.string(), name: z.string() }),
+  },
+  handler: async (req, { pathParams, queryParams }) => {
+    const { id } = pathParams;       // { id: string }
+    const { include } = queryParams; // { include?: string }
+    return Response.json({ id, name: "Example" });
+  },
+});
+```
+
+### Automatic Path Param Inference
+
+Omit `params` and path params are inferred directly from the `:param` segments in `path` — both at the type level and at runtime.
+
+```ts
+defineEndpoint({
+  path: "/assets/:tenantId/:platform",
+  method: "get",
+  handler: async (req, { pathParams }) => {
+    // pathParams: { tenantId: string; platform: string }
+    const { tenantId, platform } = pathParams;
+  },
+});
+```
+
+Provide an explicit `params` schema when you need stricter validation:
+
+```ts
+defineEndpoint({
+  path: "/assets/:tenantId/:platform",
+  method: "get",
+  openapi: {
+    params: z.object({
+      tenantId: z.string().uuid(),
+      platform: z.enum(["ios", "android"]),
+    }),
+  },
+  handler: async (req, { pathParams }) => {
+    // pathParams: { tenantId: string; platform: "ios" | "android" }
+  },
+});
+```
+
+### Multi-Value Query Params
+
+Use the `queryArray` helper to normalise query params that may appear multiple times (e.g. `?tag=a&tag=b`):
+
+```ts
+import { defineEndpoint, queryArray } from "payload-zodapi";
+
+defineEndpoint({
+  path: "/items",
+  method: "get",
+  openapi: {
+    query: z.object({
+      tag: queryArray(z.string()), // string[] — handles ?tag=a&tag=b
+      page: z.string().optional(), // string   — single value
+    }),
+  },
+  handler: async (req, { queryParams }) => {
+    const { tag, page } = queryParams; // tag: string[], page: string | undefined
+  },
+});
+```
+
+### Guards
+
+Guards are async functions that run before the handler. Return a `Response` to short-circuit the request, or return nothing to allow it through. They're useful for authentication, authorization, and other pre-handler checks.
+
+```ts
+defineEndpoint({
+  path: "/:id",
+  method: "get",
+  guards: [
+    async (req) => {
+      if (!req.user) {
+        return Response.json({ error: "Not authenticated" }, { status: 401 });
+      }
+    },
+  ],
+  handler: async (req, { pathParams }) => {
+    return Response.json({ id: pathParams.id });
+  },
+});
+```
+
+Multiple guards run in order and each can independently short-circuit.
+
+### Response Validation
+
+Response bodies are validated against the `response` schema. Behaviour is controlled per-endpoint via `responseValidation`:
+
+| Mode        | Behaviour                                          |
+| ----------- | -------------------------------------------------- |
+| `"enforce"` | Logs error and returns 500 (default)               |
+| `"log"`     | Logs a warning but returns the original response   |
+| `"off"`     | Skips response validation entirely                 |
+
+```ts
+defineEndpoint({
+  openapi: {
+    response: z.object({ id: z.string() }),
+    responseValidation: "log",
+  },
+  handler: async (req, input) => { /* ... */ },
+});
+```
+
+## Zod Schema Generation
+
+Generate Zod schemas from your Payload config with:
+
+```bash
+pnpm payload generate:schemas
+```
+
+This reads the Payload config, converts it to JSON schema via `configToJSONSchema`, and outputs TypeScript Zod schemas to the path configured in `custom.zodApiPluginOpts.schemasPath`.
+
+### Using Generated Schemas
+
+```ts
+import { PostSchema } from "@/payload-schemas";
+
+const myEndpoint = defineEndpoint({
+  path: "/posts",
+  method: "get",
+  openapi: {
+    response: z.array(PostSchema),
+  },
+  handler: async (req) => { /* ... */ },
+});
+```
+
+### Custom Schema Pre-Processors
+
+If your JSON schema contains structures that confuse quicktype, supply additional pre-processors via the `schemaPreProcessors` plugin option. Each pre-processor receives a `JSONSchema4` and returns a transformed one.
+
+```ts
+import type { SchemaPreProcessor } from "payload-zodapi";
+
+// Flatten a deeply-nested or circular property so quicktype can handle it
+const flattenCircularRefs: SchemaPreProcessor = (schema) => {
+  const definitions = { ...(schema.definitions ?? {}) };
+  for (const [key, def] of Object.entries(definitions)) {
+    if (def.properties?.metadata) {
+      definitions[key] = {
+        ...def,
+        properties: { ...def.properties, metadata: { type: "object" } },
+      };
+    }
   }
+  return { ...schema, definitions };
+};
+
+zodApiPlugin({
+  metadata: { title: "My API", version: "1.0.0" },
+  schemaPreProcessors: [flattenCircularRefs],
+});
 ```
 
-First, we receive the existing payload config along with any plugin options.
+## License
 
-From here, you can extend the config as you wish.
-
-Finally, you return the config and that is it!
-
-##### Spread Syntax
-
-Spread syntax (or the spread operator) is a feature in JavaScript that uses the dot notation **(...)** to spread elements from arrays, strings, or objects into various contexts.
-
-We are going to use spread syntax to allow us to add data to existing arrays without losing the existing data. It is crucial to spread the existing data correctly – else this can cause adverse behavior and conflicts with Payload config and other plugins.
-
-Let’s say you want to build a plugin that adds a new collection:
-
-```ts
-config.collections = [
-  ...(config.collections || []),
-  // Add additional collections here
-]
-```
-
-First we spread the `config.collections` to ensure that we don’t lose the existing collections, then you can add any additional collections just as you would in a regular payload config.
-
-This same logic is applied to other properties like admin, hooks, globals:
-
-```ts
-config.globals = [
-  ...(config.globals || []),
-  // Add additional globals here
-]
-
-config.hooks = {
-  ...(incomingConfig.hooks || {}),
-  // Add additional hooks here
-}
-```
-
-Some properties will be slightly different to extend, for instance the onInit property:
-
-```ts
-import { onInitExtension } from './onInitExtension' // example file
-
-config.onInit = async (payload) => {
-  if (incomingConfig.onInit) await incomingConfig.onInit(payload)
-  // Add additional onInit code by defining an onInitExtension function
-  onInitExtension(pluginOptions, payload)
-}
-```
-
-If you wish to add to the onInit, you must include the **async/await**. We don’t use spread syntax in this case, instead you must await the existing `onInit` before running additional functionality.
-
-In the template, we have stubbed out some addition `onInit` actions that seeds in a document to the `plugin-collection`, you can use this as a base point to add more actions - and if not needed, feel free to delete it.
-
-##### Types.ts
-
-If your plugin has options, you should define and provide types for these options.
-
-```ts
-export type MyPluginConfig = {
-  /**
-   * List of collections to add a custom field
-   */
-  collections?: Partial<Record<CollectionSlug, true>>
-  /**
-   * Disable the plugin
-   */
-  disabled?: boolean
-}
-```
-
-If possible, include JSDoc comments to describe the options and their types. This allows a developer to see details about the options in their editor.
-
-##### Testing
-
-Having a test suite for your plugin is essential to ensure quality and stability. **Vitest** is a fast, modern testing framework that works seamlessly with Vite and supports TypeScript out of the box.
-
-Vitest organizes tests into test suites and cases, similar to other testing frameworks. We recommend creating individual tests based on the expected behavior of your plugin from start to finish.
-
-Writing tests with Vitest is very straightforward, and you can learn more about how it works in the [Vitest documentation.](https://vitest.dev/)
-
-For this template, we stubbed out `int.spec.ts` in the `dev` folder where you can write your tests.
-
-```ts
-describe('Plugin tests', () => {
-  // Create tests to ensure expected behavior from the plugin
-  it('some condition that must be met', () => {
-   // Write your test logic here
-   expect(...)
-  })
-})
-```
-
-## Best practices
-
-With this tutorial and the plugin template, you should have everything you need to start building your own plugin.
-In addition to the setup, here are other best practices aim we follow:
-
-- **Providing an enable / disable option:** For a better user experience, provide a way to disable the plugin without uninstalling it. This is especially important if your plugin adds additional webpack aliases, this will allow you to still let the webpack run to prevent errors.
-- **Include tests in your GitHub CI workflow**: If you’ve configured tests for your package, integrate them into your workflow to run the tests each time you commit to the plugin repository. Learn more about [how to configure tests into your GitHub CI workflow.](https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs)
-- **Publish your finished plugin to NPM**: The best way to share and allow others to use your plugin once it is complete is to publish an NPM package. This process is straightforward and well documented, find out more [creating and publishing a NPM package here.](https://docs.npmjs.com/creating-and-publishing-scoped-public-packages/).
-- **Add payload-plugin topic tag**: Apply the tag **payload-plugin **to your GitHub repository. This will boost the visibility of your plugin and ensure it gets listed with [existing payload plugins](https://github.com/topics/payload-plugin).
-- **Use [Semantic Versioning](https://semver.org/) (SemVar)** - With the SemVar system you release version numbers that reflect the nature of changes (major, minor, patch). Ensure all major versions reference their Payload compatibility.
-
-# Questions
-
-Please contact [Payload](mailto:dev@payloadcms.com) with any questions about using this plugin template.
+MIT
