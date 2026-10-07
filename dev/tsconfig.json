@@ -17,8 +17,7 @@
 		"paths": {
 			"@payload-config": ["./payload.config.ts"],
 			"payload-zodapi": ["../src/index.ts"],
-			"payload-zodapi/client": ["../src/exports/client.ts"],
-			"payload-zodapi/rsc": ["../src/exports/rsc.ts"]
+			"payload-zodapi/testing": ["../src/testHelpers.ts"]
 		},
 		"noEmit": true,
 		"emitDeclarationOnly": false

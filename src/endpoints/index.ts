@@ -5,10 +5,10 @@ import type { z } from "zod";
 import {
   registerAuthCollectionEndpoints,
   registerAuthRootEndpoints,
-} from "./auth";
-import { registerCollectionEndpoints } from "./collections";
-import { registerGlobalEndpoints } from "./globals";
-import { registerUploadEndpoints } from "./uploads";
+} from "./auth.js";
+import { registerCollectionEndpoints } from "./collections.js";
+import { registerGlobalEndpoints } from "./globals.js";
+import { registerUploadEndpoints } from "./uploads.js";
 
 /**
  * Registers all default Payload endpoints in the OpenAPI registry:

@@ -1,7 +1,7 @@
 import { APIError } from "payload";
 
-import { createMockRequest } from "../testHelpers";
-import { specAccessResponse } from "../utils/access";
+import { createMockRequest } from "../testHelpers.js";
+import { specAccessResponse } from "../utils/access.js";
 
 // Mock payload/shared to avoid pulling in the full Payload module tree
 vi.mock("payload/shared", () => ({

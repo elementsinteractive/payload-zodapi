@@ -1,6 +1,6 @@
 import type { JSONSchema4 } from "json-schema";
-import { preprocessJsonSchema } from "../bin/generate-schemas";
-import type { SchemaPreProcessor } from "../types";
+import { preprocessJsonSchema } from "../bin/generate-schemas.js";
+import type { SchemaPreProcessor } from "../types.js";
 
 describe("preprocessJsonSchema", () => {
   const baseSchema: JSONSchema4 = {

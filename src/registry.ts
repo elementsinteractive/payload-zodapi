@@ -3,7 +3,7 @@ import type { Endpoint } from "payload";
 
 import { z } from "zod";
 
-import type { AnyZodObject, EndpointOpenApiConfig } from "./types";
+import type { AnyZodObject, EndpointOpenApiConfig } from "./types.js";
 
 // ── Path helpers ────────────────────────────────────────────────────
 

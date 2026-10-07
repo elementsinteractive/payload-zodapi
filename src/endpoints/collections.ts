@@ -12,7 +12,7 @@ import {
   registerSchemas,
   toRefId,
   versionResponse,
-} from "./schemas";
+} from "./schemas.js";
 
 /**
  * Registers the standard Payload CRUD endpoints for a single collection.

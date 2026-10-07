@@ -1,15 +1,15 @@
 import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
 import type { PayloadRequest } from "payload";
 
-import { createSpecHandler } from "../handlers/specHandler";
-import "../testHelpers"; // Polyfills Response
+import { createSpecHandler } from "../handlers/specHandler.js";
+import "../testHelpers.js"; // Polyfills Response
 
 // Mock the access utility
-vi.mock("../utils/access", () => ({
+vi.mock("../utils/access.js", () => ({
   specAccessResponse: vi.fn().mockResolvedValue(undefined),
 }));
 
-import { specAccessResponse } from "../utils/access";
+import { specAccessResponse } from "../utils/access.js";
 
 const mockedAccess = vi.mocked(specAccessResponse);
 
@@ -27,7 +27,6 @@ const createConfig = (
 ) => ({
   metadata: { title: "Test API", version: "1.0.0" },
   openapiVersion: "3.0" as const,
-  readyPromise: Promise.resolve(),
   ...overrides,
 });
 

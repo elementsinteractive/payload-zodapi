@@ -19,7 +19,12 @@ export default defineConfig(() => {
     test: {
       environment: "node",
       globals: true,
-      exclude: ["dev/e2e.spec.ts", "node_modules/**", "dev/.next/**"],
+      exclude: [
+        "dev/e2e.spec.ts",
+        "node_modules/**",
+        "dev/.next/**",
+        "dist/**",
+      ],
       hookTimeout: 30_000,
       testTimeout: 30_000,
     },

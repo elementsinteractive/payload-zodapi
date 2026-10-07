@@ -9,7 +9,7 @@ import {
   paginatedResponse,
   toRefId,
   versionResponse,
-} from "./schemas";
+} from "./schemas.js";
 
 /**
  * Registers the standard Payload endpoints for a single global.

@@ -9,8 +9,8 @@ import {
   registerEndpoint,
   registerEndpoints,
   toOpenApiPath,
-} from "../registry";
-import { createMockEndpoint, findRouteByPath } from "../testHelpers";
+} from "../registry.js";
+import { createMockEndpoint, findRouteByPath } from "../testHelpers.js";
 
 describe("path helpers", () => {
   it.each([

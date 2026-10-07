@@ -9,9 +9,9 @@ import type {
   PathParamSchema,
   ValidatedInput,
   ValidationMode,
-} from "./types";
+} from "./types.js";
 
-export type { PathParams } from "./types";
+export type { PathParams } from "./types.js";
 
 /**
  * Wraps a Zod schema to accept a query param that may appear multiple times.

@@ -10,15 +10,10 @@
 			"types": "./src/index.ts",
 			"default": "./src/index.ts"
 		},
-		"./client": {
-			"import": "./src/exports/client.ts",
-			"types": "./src/exports/client.ts",
-			"default": "./src/exports/client.ts"
-		},
-		"./rsc": {
-			"import": "./src/exports/rsc.ts",
-			"types": "./src/exports/rsc.ts",
-			"default": "./src/exports/rsc.ts"
+		"./testing": {
+			"import": "./src/testHelpers.ts",
+			"types": "./src/testHelpers.ts",
+			"default": "./src/testHelpers.ts"
 		}
 	},
 	"main": "./src/index.ts",
@@ -27,9 +22,9 @@
 		"dist"
 	],
 	"scripts": {
-		"build": "pnpm copyfiles && pnpm build:types && pnpm build:swc",
-		"build:swc": "swc ./src -d ./dist --config-file .swcrc --strip-leading-paths",
-		"build:types": "tsc --outDir dist --rootDir ./src",
+		"build": "pnpm clean && pnpm copyfiles && pnpm build:types && pnpm build:swc",
+		"build:swc": "swc ./src -d ./dist --config-file .swcrc --strip-leading-paths --ignore \"**/__tests__/**\" --ignore \"**/payload-schemas.ts\"",
+		"build:types": "tsc -p tsconfig.build.json --outDir dist --rootDir ./src",
 		"clean": "rimraf {dist,*.tsbuildinfo}",
 		"copyfiles": "copyfiles -u 1 \"src/**/*.{html,css,scss,ttf,woff,woff2,eot,svg,jpg,png,json}\" dist/",
 		"dev": "next dev dev --turbo",
@@ -45,6 +40,7 @@
 		"test:int": "vitest"
 	},
 	"devDependencies": {
+		"@asteasolutions/zod-to-openapi": "^8.5.0",
 		"@biomejs/biome": "^2.3.11",
 		"@payloadcms/db-mongodb": "3.37.0",
 		"@payloadcms/db-postgres": "3.37.0",
@@ -76,10 +72,19 @@
 		"sort-package-json": "^2.10.0",
 		"typescript": "^6.0.0",
 		"vite-tsconfig-paths": "6.0.5",
-		"vitest": "4.0.18"
+		"vitest": "4.0.18",
+		"zod": "^4.3.6"
 	},
 	"peerDependencies": {
-		"payload": "^3.37.0"
+		"@asteasolutions/zod-to-openapi": "^8.5.0",
+		"payload": "^3.37.0",
+		"vitest": ">=3",
+		"zod": "^4.0.0"
+	},
+	"peerDependenciesMeta": {
+		"vitest": {
+			"optional": true
+		}
 	},
 	"engines": {
 		"node": "^18.20.2 || >=20.9.0",
@@ -92,15 +97,10 @@
 				"types": "./dist/index.d.ts",
 				"default": "./dist/index.js"
 			},
-			"./client": {
-				"import": "./dist/exports/client.js",
-				"types": "./dist/exports/client.d.ts",
-				"default": "./dist/exports/client.js"
-			},
-			"./rsc": {
-				"import": "./dist/exports/rsc.js",
-				"types": "./dist/exports/rsc.d.ts",
-				"default": "./dist/exports/rsc.js"
+			"./testing": {
+				"import": "./dist/testHelpers.js",
+				"types": "./dist/testHelpers.d.ts",
+				"default": "./dist/testHelpers.js"
 			}
 		},
 		"main": "./dist/index.js",
@@ -117,8 +117,6 @@
 	},
 	"registry": "https://registry.npmjs.org/",
 	"dependencies": {
-		"@asteasolutions/zod-to-openapi": "^8.5.0",
-		"quicktype-core": "^23.2.6",
-		"zod": "^4.3.6"
+		"quicktype-core": "^23.2.6"
 	}
 }

@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import { defineEndpoint, queryArray } from "../defineEndpoint";
-import { createMockRequest } from "../testHelpers";
+import { defineEndpoint, queryArray } from "../defineEndpoint.js";
+import { createMockRequest } from "../testHelpers.js";
 
 describe("defineEndpoint", () => {
   it("creates a basic endpoint without openapi config", () => {

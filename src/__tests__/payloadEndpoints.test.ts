@@ -1,7 +1,7 @@
 import type { Endpoint } from "payload";
 import type z from "zod";
 
-import "../testHelpers";
+import "../testHelpers.js";
 
 /**
  * Drift-detection tests for the endpoints/ module.
@@ -17,10 +17,10 @@ import { CollectionsSchema, GlobalsSchema } from "@/payload-schemas";
 import {
   registerAuthCollectionEndpoints,
   registerAuthRootEndpoints,
-} from "../endpoints/auth";
-import { registerCollectionEndpoints } from "../endpoints/collections";
-import { registerGlobalEndpoints } from "../endpoints/globals";
-import { registerUploadEndpoints } from "../endpoints/uploads";
+} from "../endpoints/auth.js";
+import { registerCollectionEndpoints } from "../endpoints/collections.js";
+import { registerGlobalEndpoints } from "../endpoints/globals.js";
+import { registerUploadEndpoints } from "../endpoints/uploads.js";
 
 // ── Import Payload's internal endpoint arrays ───────────────────────
 // Payload's package.json exports don't expose these, so we resolve

@@ -9,7 +9,7 @@ import {
   quicktype,
 } from "quicktype-core";
 
-import type { SchemaPreProcessor } from "../types";
+import type { SchemaPreProcessor } from "../types.js";
 
 export const DEFAULT_SCHEMAS_PATH = "src/payload-schemas.ts";
 

@@ -5,22 +5,22 @@ import {
 } from "@asteasolutions/zod-to-openapi";
 import type { PayloadRequest } from "payload";
 
-import type { OpenApiMetadata, SpecAccess } from "../types";
+import type { OpenApiMetadata, SpecAccess } from "../types.js";
 
-import { specAccessResponse } from "../utils/access";
+import { specAccessResponse } from "../utils/access.js";
 
 export type SpecHandlerConfig = {
   metadata: OpenApiMetadata;
   openapiVersion: "3.0" | "3.1";
   readAccess?: SpecAccess;
-  /** Promise that resolves when the registry is fully populated (after onInit). */
-  readyPromise: Promise<void>;
+  /** Resolves once the registry is fully populated. Awaited before the first spec generation. */
+  ready?: (req: PayloadRequest) => Promise<void>;
 };
 
 /**
  * Creates a request handler that generates and returns the OpenAPI document
  * from the registry. The document is generated lazily on the first request
- * (after the optional readyPromise resolves) and cached for subsequent requests.
+ * (after the optional `ready` callback resolves) and cached for subsequent requests.
  */
 export const createSpecHandler = (
   registry: OpenAPIRegistry,
@@ -40,7 +40,7 @@ export const createSpecHandler = (
     }
 
     if (!spec) {
-      await config.readyPromise;
+      await config.ready?.(req);
 
       spec = new Generator(registry.definitions).generateDocument({
         info: config.metadata,

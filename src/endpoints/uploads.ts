@@ -4,7 +4,7 @@ import type { CollectionConfig } from "payload";
 import { formatLabels } from "payload";
 import { z } from "zod";
 
-import { toRefId } from "./schemas";
+import { toRefId } from "./schemas.js";
 
 /**
  * Registers upload-specific endpoints for a single upload-enabled collection.

@@ -1,8 +1,8 @@
 import type { PayloadRequest } from "payload";
 
-import type { SpecAccess } from "../types";
+import type { SpecAccess } from "../types.js";
 
-import { specAccessResponse } from "../utils/access";
+import { specAccessResponse } from "../utils/access.js";
 
 const SWAGGER_UI_VERSION = "5.20.0";
 

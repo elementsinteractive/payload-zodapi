@@ -1,7 +1,7 @@
 import { Forbidden, type PayloadRequest } from "payload";
 import { formatAdminURL } from "payload/shared";
 
-import type { SpecAccess } from "../types";
+import type { SpecAccess } from "../types.js";
 
 export const specAccessResponse = async (
   req: PayloadRequest,
