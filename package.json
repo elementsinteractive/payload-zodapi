@@ -1,143 +1,143 @@
 {
-	"name": "@elementsinteractive/payload-zodapi",
-	"version": "0.0.1",
-	"description": "Payload CMS plugin that generates a unified OpenAPI spec from Zod schemas for built-in and custom endpoints, with request/response validation.",
-	"author": "Sacha Brouté (https://github.com/sacha-c)",
-	"contributors": [
-		"Sacha Brouté (https://github.com/sacha-c)",
-		"Sergio Castillo (https://github.com/scastlara)"
-	],
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/elementsinteractive/payload-zodapi.git"
-	},
-	"homepage": "https://github.com/elementsinteractive/payload-zodapi#readme",
-	"bugs": {
-		"url": "https://github.com/elementsinteractive/payload-zodapi/issues"
-	},
-	"keywords": [
-		"payload",
-		"payloadcms",
-		"payload-plugin",
-		"openapi",
-		"swagger",
-		"zod"
-	],
-	"license": "MIT",
-	"type": "module",
-	"exports": {
-		".": {
-			"import": "./src/index.ts",
-			"types": "./src/index.ts",
-			"default": "./src/index.ts"
-		},
-		"./testing": {
-			"import": "./src/testHelpers.ts",
-			"types": "./src/testHelpers.ts",
-			"default": "./src/testHelpers.ts"
-		}
-	},
-	"main": "./src/index.ts",
-	"types": "./src/index.ts",
-	"files": [
-		"dist"
-	],
-	"scripts": {
-		"build": "pnpm clean && pnpm copyfiles && pnpm build:types && pnpm build:swc",
-		"build:swc": "swc ./src -d ./dist --config-file .swcrc --strip-leading-paths --ignore \"**/__tests__/**\" --ignore \"**/payload-schemas.ts\"",
-		"build:types": "tsc -p tsconfig.build.json --outDir dist --rootDir ./src",
-		"clean": "rimraf {dist,*.tsbuildinfo}",
-		"copyfiles": "copyfiles -u 1 \"src/**/*.{html,css,scss,ttf,woff,woff2,eot,svg,jpg,png,json}\" dist/",
-		"dev": "next dev dev --turbo",
-		"dev:generate-importmap": "pnpm dev:payload generate:importmap",
-		"dev:generate-types": "pnpm dev:payload generate:types",
-		"dev:payload": "cross-env PAYLOAD_CONFIG_PATH=./dev/payload.config.ts payload",
-		"generate:importmap": "pnpm dev:generate-importmap",
-		"generate:types": "pnpm dev:generate-types",
-		"lint": "biome check . --error-on-warnings",
-		"lint:fix": "biome check --write --unsafe .",
-		"test": "pnpm test:int && pnpm test:e2e",
-		"test:e2e": "playwright test",
-		"test:int": "vitest"
-	},
-	"devDependencies": {
-		"@asteasolutions/zod-to-openapi": "^8.5.0",
-		"@biomejs/biome": "^2.3.11",
-		"@payloadcms/db-mongodb": "3.37.0",
-		"@payloadcms/db-postgres": "3.37.0",
-		"@payloadcms/db-sqlite": "3.37.0",
-		"@payloadcms/eslint-config": "3.9.0",
-		"@payloadcms/next": "3.37.0",
-		"@payloadcms/richtext-lexical": "3.37.0",
-		"@payloadcms/ui": "3.37.0",
-		"@playwright/test": "1.58.2",
-		"@swc-node/register": "1.10.9",
-		"@swc/cli": "0.6.0",
-		"@types/json-schema": "^7.0.15",
-		"@types/node": "22.19.9",
-		"@types/react": "19.2.14",
-		"@types/react-dom": "19.2.3",
-		"copyfiles": "2.4.1",
-		"cross-env": "^7.0.3",
-		"graphql": "^16.8.1",
-		"mongodb-memory-server": "10.1.4",
-		"next": "16.2.0",
-		"open": "^10.1.0",
-		"payload": "3.37.0",
-		"prettier": "^3.4.2",
-		"qs-esm": "7.0.2",
-		"react": "19.2.4",
-		"react-dom": "19.2.4",
-		"rimraf": "3.0.2",
-		"sharp": "0.34.2",
-		"sort-package-json": "^2.10.0",
-		"typescript": "^6.0.0",
-		"vite-tsconfig-paths": "6.0.5",
-		"vitest": "4.0.18",
-		"zod": "^4.3.6"
-	},
-	"peerDependencies": {
-		"@asteasolutions/zod-to-openapi": "^8.5.0",
-		"payload": "^3.37.0",
-		"vitest": ">=3",
-		"zod": "^4.0.0"
-	},
-	"peerDependenciesMeta": {
-		"vitest": {
-			"optional": true
-		}
-	},
-	"engines": {
-		"node": "^18.20.2 || >=20.9.0",
-		"pnpm": "^9 || ^10"
-	},
-	"publishConfig": {
-		"exports": {
-			".": {
-				"import": "./dist/index.js",
-				"types": "./dist/index.d.ts",
-				"default": "./dist/index.js"
-			},
-			"./testing": {
-				"import": "./dist/testHelpers.js",
-				"types": "./dist/testHelpers.d.ts",
-				"default": "./dist/testHelpers.js"
-			}
-		},
-		"main": "./dist/index.js",
-		"types": "./dist/index.d.ts"
-	},
-	"pnpm": {
-		"onlyBuiltDependencies": [
-			"@swc/core",
-			"esbuild",
-			"mongodb-memory-server",
-			"sharp",
-			"unrs-resolver"
-		]
-	},
-	"registry": "https://registry.npmjs.org/",
-	"dependencies": {
-		"quicktype-core": "^23.2.6"
-	}
+  "name": "@elementsinteractive/payload-zodapi",
+  "version": "0.1.0",
+  "description": "Payload CMS plugin that generates a unified OpenAPI spec from Zod schemas for built-in and custom endpoints, with request/response validation.",
+  "author": "Sacha Brout\u00e9 (https://github.com/sacha-c)",
+  "contributors": [
+    "Sacha Brout\u00e9 (https://github.com/sacha-c)",
+    "Sergio Castillo (https://github.com/scastlara)"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/elementsinteractive/payload-zodapi.git"
+  },
+  "homepage": "https://github.com/elementsinteractive/payload-zodapi#readme",
+  "bugs": {
+    "url": "https://github.com/elementsinteractive/payload-zodapi/issues"
+  },
+  "keywords": [
+    "payload",
+    "payloadcms",
+    "payload-plugin",
+    "openapi",
+    "swagger",
+    "zod"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./testing": {
+      "import": "./src/testHelpers.ts",
+      "types": "./src/testHelpers.ts",
+      "default": "./src/testHelpers.ts"
+    }
+  },
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "pnpm clean && pnpm copyfiles && pnpm build:types && pnpm build:swc",
+    "build:swc": "swc ./src -d ./dist --config-file .swcrc --strip-leading-paths --ignore \"**/__tests__/**\" --ignore \"**/payload-schemas.ts\"",
+    "build:types": "tsc -p tsconfig.build.json --outDir dist --rootDir ./src",
+    "clean": "rimraf {dist,*.tsbuildinfo}",
+    "copyfiles": "copyfiles -u 1 \"src/**/*.{html,css,scss,ttf,woff,woff2,eot,svg,jpg,png,json}\" dist/",
+    "dev": "next dev dev --turbo",
+    "dev:generate-importmap": "pnpm dev:payload generate:importmap",
+    "dev:generate-types": "pnpm dev:payload generate:types",
+    "dev:payload": "cross-env PAYLOAD_CONFIG_PATH=./dev/payload.config.ts payload",
+    "generate:importmap": "pnpm dev:generate-importmap",
+    "generate:types": "pnpm dev:generate-types",
+    "lint": "biome check . --error-on-warnings",
+    "lint:fix": "biome check --write --unsafe .",
+    "test": "pnpm test:int && pnpm test:e2e",
+    "test:e2e": "playwright test",
+    "test:int": "vitest"
+  },
+  "devDependencies": {
+    "@asteasolutions/zod-to-openapi": "^8.5.0",
+    "@biomejs/biome": "^2.3.11",
+    "@payloadcms/db-mongodb": "3.37.0",
+    "@payloadcms/db-postgres": "3.37.0",
+    "@payloadcms/db-sqlite": "3.37.0",
+    "@payloadcms/eslint-config": "3.9.0",
+    "@payloadcms/next": "3.37.0",
+    "@payloadcms/richtext-lexical": "3.37.0",
+    "@payloadcms/ui": "3.37.0",
+    "@playwright/test": "1.58.2",
+    "@swc-node/register": "1.10.9",
+    "@swc/cli": "0.6.0",
+    "@types/json-schema": "^7.0.15",
+    "@types/node": "22.19.9",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "copyfiles": "2.4.1",
+    "cross-env": "^7.0.3",
+    "graphql": "^16.8.1",
+    "mongodb-memory-server": "10.1.4",
+    "next": "16.2.0",
+    "open": "^10.1.0",
+    "payload": "3.37.0",
+    "prettier": "^3.4.2",
+    "qs-esm": "7.0.2",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "rimraf": "3.0.2",
+    "sharp": "0.34.2",
+    "sort-package-json": "^2.10.0",
+    "typescript": "^6.0.0",
+    "vite-tsconfig-paths": "6.0.5",
+    "vitest": "4.0.18",
+    "zod": "^4.3.6"
+  },
+  "peerDependencies": {
+    "@asteasolutions/zod-to-openapi": "^8.5.0",
+    "payload": "^3.37.0",
+    "vitest": ">=3",
+    "zod": "^4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "vitest": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": "^18.20.2 || >=20.9.0",
+    "pnpm": "^9 || ^10"
+  },
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "import": "./dist/index.js",
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "./testing": {
+        "import": "./dist/testHelpers.js",
+        "types": "./dist/testHelpers.d.ts",
+        "default": "./dist/testHelpers.js"
+      }
+    },
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@swc/core",
+      "esbuild",
+      "mongodb-memory-server",
+      "sharp",
+      "unrs-resolver"
+    ]
+  },
+  "registry": "https://registry.npmjs.org/",
+  "dependencies": {
+    "quicktype-core": "^23.2.6"
+  }
 }
