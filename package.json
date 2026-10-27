@@ -1,7 +1,28 @@
 {
 	"name": "payload-zodapi",
-	"version": "1.0.0",
-	"description": "A blank template to get started with Payload 3.0",
+	"version": "0.0.1",
+	"description": "Payload CMS plugin that generates a unified OpenAPI spec from Zod schemas for built-in and custom endpoints, with request/response validation.",
+	"author": "Sacha Brouté (https://github.com/sacha-c)",
+	"contributors": [
+		"Sacha Brouté (https://github.com/sacha-c)",
+		"Sergio Castillo (https://github.com/scastlara)"
+	],
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/elementsinteractive/payload-zodapi.git"
+	},
+	"homepage": "https://github.com/elementsinteractive/payload-zodapi#readme",
+	"bugs": {
+		"url": "https://github.com/elementsinteractive/payload-zodapi/issues"
+	},
+	"keywords": [
+		"payload",
+		"payloadcms",
+		"payload-plugin",
+		"openapi",
+		"swagger",
+		"zod"
+	],
 	"license": "MIT",
 	"type": "module",
 	"exports": {
