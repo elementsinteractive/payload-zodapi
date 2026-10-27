@@ -16,9 +16,9 @@ Payload gives you a powerful API out of the box, but there's no built-in way to 
 ## Installation
 
 ```bash
-pnpm add payload-zodapi
+pnpm add @elementsinteractive/payload-zodapi
 # or
-npm install payload-zodapi
+npm install @elementsinteractive/payload-zodapi
 ```
 
 ## Setup
@@ -26,7 +26,7 @@ npm install payload-zodapi
 Register the plugin in your `payload.config.ts`:
 
 ```ts
-import { zodApiPlugin } from "payload-zodapi";
+import { zodApiPlugin } from "@elementsinteractive/payload-zodapi";
 
 export default buildConfig({
   plugins: [
@@ -52,7 +52,7 @@ Use `defineEndpoint` instead of a raw Payload endpoint object. It handles valida
 ```ts
 import type { CollectionConfig } from "payload";
 import { z } from "zod";
-import { defineEndpoint } from "payload-zodapi";
+import { defineEndpoint } from "@elementsinteractive/payload-zodapi";
 
 const getPost = defineEndpoint({
   path: "/:id",
@@ -116,7 +116,7 @@ defineEndpoint({
 Use the `queryArray` helper to normalise query params that may appear multiple times (e.g. `?tag=a&tag=b`):
 
 ```ts
-import { defineEndpoint, queryArray } from "payload-zodapi";
+import { defineEndpoint, queryArray } from "@elementsinteractive/payload-zodapi";
 
 defineEndpoint({
   path: "/items",
@@ -206,7 +206,7 @@ const myEndpoint = defineEndpoint({
 If your JSON schema contains structures that confuse quicktype, supply additional pre-processors via the `schemaPreProcessors` plugin option. Each pre-processor receives a `JSONSchema4` and returns a transformed one.
 
 ```ts
-import type { SchemaPreProcessor } from "payload-zodapi";
+import type { SchemaPreProcessor } from "@elementsinteractive/payload-zodapi";
 
 // Flatten a deeply-nested or circular property so quicktype can handle it
 const flattenCircularRefs: SchemaPreProcessor = (schema) => {

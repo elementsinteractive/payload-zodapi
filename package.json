@@ -1,5 +1,5 @@
 {
-	"name": "payload-zodapi",
+	"name": "@elementsinteractive/payload-zodapi",
 	"version": "0.0.1",
 	"description": "Payload CMS plugin that generates a unified OpenAPI spec from Zod schemas for built-in and custom endpoints, with request/response validation.",
 	"author": "Sacha Brouté (https://github.com/sacha-c)",

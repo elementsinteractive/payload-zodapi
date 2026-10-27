@@ -16,8 +16,8 @@
 	"compilerOptions": {
 		"paths": {
 			"@payload-config": ["./payload.config.ts"],
-			"payload-zodapi": ["../src/index.ts"],
-			"payload-zodapi/testing": ["../src/testHelpers.ts"]
+			"@elementsinteractive/payload-zodapi": ["../src/index.ts"],
+			"@elementsinteractive/payload-zodapi/testing": ["../src/testHelpers.ts"]
 		},
 		"noEmit": true,
 		"emitDeclarationOnly": false

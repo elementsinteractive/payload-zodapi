@@ -34,7 +34,7 @@ jobs:
         run: pnpm pack --pack-destination "$RUNNER_TEMP"
 
       - name: Publish to npm
-        run: npm publish "$RUNNER_TEMP"/payload-zodapi-*.tgz --provenance --access public
+        run: npm publish "$RUNNER_TEMP"/elementsinteractive-payload-zodapi-*.tgz --provenance --access public
 
   release_notes:
     runs-on: ubuntu-latest
